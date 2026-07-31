@@ -4,15 +4,10 @@
 <!DOCTYPE html>
 <html lang="id" data-theme="light">
 <head>
-<script>document.documentElement.setAttribute("data-theme",localStorage.getItem("pdam_theme")||"light");</script>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<?php include __DIR__ . '/includes/head_common.php'; ?>
   <title>Global Analysis — PDAM Anomaly Detection</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
-    body{font-family:'DM Sans',sans-serif}
     .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
     @media(max-width:900px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:480px){.stat-grid{grid-template-columns:1fr}}
@@ -29,28 +24,6 @@
     .btn-exp{display:flex;align-items:center;gap:6px;padding:8px 16px;border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s}
     .btn-exp:hover{opacity:.85;transform:translateY(-1px)}
     .meta-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(21,101,192,.08);color:var(--primary);border:1px solid rgba(21,101,192,.2);border-radius:20px;font-size:11px;font-weight:700;padding:4px 12px}
-  
-  /* v2.0 Design Enhancements */
-  .card-pdam h2, .card-pdam h3 { font-family: 'Outfit', sans-serif; }
-  .stat-num { font-family: 'Outfit', sans-serif; font-weight: 800; letter-spacing: -0.5px; }
-  .badge-sev {
-    display: inline-flex; align-items: center; gap: 4px;
-    padding: 3px 9px; border-radius: 99px; font-size: 11px; font-weight: 700;
-    border: 1px solid transparent; font-family: 'DM Sans', sans-serif;
-  }
-  .badge-high   { background: rgba(225,29,72,0.1);  color: #B91C1C; border-color: rgba(225,29,72,0.2);  }
-  .badge-medium { background: rgba(217,119,6,0.1);  color: #92400E; border-color: rgba(217,119,6,0.2);  }
-  .badge-low    { background: rgba(5,150,105,0.1);  color: #065F46; border-color: rgba(5,150,105,0.2);  }
-  .badge-normal { background: rgba(8,145,178,0.1);  color: #0C4A6E; border-color: rgba(8,145,178,0.2);  }
-  [data-theme="dark"] .badge-high   { color: #FCA5A5; }
-  [data-theme="dark"] .badge-medium { color: #FCD34D; }
-  [data-theme="dark"] .badge-low    { color: #6EE7B7; }
-  [data-theme="dark"] .badge-normal { color: #7DD3FC; }
-
-  .grid-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 20px; }
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 20px; }
-  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-bottom: 20px; }
-  @media (max-width: 768px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -83,10 +56,11 @@
     <div style="margin-bottom:14px">
       <div style="font-size:10px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">Mode Analisis</div>
       <div class="mode-tabs" id="modeTabs">
-        <button class="mtab on" data-v="near_tahun_per_golongan">Near Tahun per Golongan</button>
-        <button class="mtab"    data-v="near_tahun_near_golongan">Near Tahun vs Near Golongan</button>
-        <button class="mtab"    data-v="multi_tahun_per_golongan">Multi Tahun per Golongan</button>
-        <button class="mtab"    data-v="multi_tahun_semua_golongan">Multi Tahun Semua Golongan</button>
+        <button class="mtab on" data-v="multi_tahun_semua_golongan">Mode Global</button>
+        <button class="mtab" data-v="multi_tahun_per_golongan">Mode Golongan</button>
+        <button class="mtab" data-v="near_tahun_per_golongan">Mode Tahun-Golongan</button>
+        <button class="mtab" data-v="near_tahun_near_golongan">Mode Tahun</button>
+        
       </div>
     </div>
 
@@ -232,7 +206,7 @@
 <script>
 let curData = null;
 let cDonut = null, cBar = null;
-let activeMode = 'near_tahun_per_golongan';
+let activeMode = 'multi_tahun_semua_golongan';
 
 document.querySelectorAll('.mtab').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -274,14 +248,14 @@ function render(data) {
   const m = data.meta;
   document.getElementById('vTotal').textContent = m.total.toLocaleString('id-ID');
   document.getElementById('vAnom').textContent  = m.anomali.toLocaleString('id-ID');
-  document.getElementById('vPct').textContent   = m.pct_anomali.toFixed(1)+'%';
+  document.getElementById('vPct').textContent   = (+(m.pct_anomali||0)).toFixed(1)+'%';
   document.getElementById('vCont').textContent  = m.contamination==='auto'?'Auto':(parseFloat(m.contamination)*100)+'%';
   // Severity
   const sev = m.severity || {high:0,medium:0,low:0};
   document.getElementById('vHigh').textContent = (sev.high||0).toLocaleString('id-ID');
   document.getElementById('vMed').textContent  = (sev.medium||0).toLocaleString('id-ID');
   document.getElementById('vLow').textContent  = (sev.low||0).toLocaleString('id-ID');
-  document.getElementById('dcPct').textContent  = m.pct_anomali.toFixed(1)+'%';
+  document.getElementById('dcPct').textContent  = (+(m.pct_anomali||0)).toFixed(1)+'%';
   document.getElementById('ll1').textContent = `Anomali (${m.anomali})`;
   document.getElementById('ll2').textContent = `Normal (${m.normal})`;
 
@@ -295,7 +269,7 @@ function render(data) {
   });
 
   // Bar
-  const gs = data.summary_golongan;
+  const gs = data.summary_golongan || [];
   if(cBar) cBar.destroy();
   cBar = new Chart(document.getElementById('cBar').getContext('2d'), {
     type:'bar',
@@ -322,38 +296,35 @@ function render(data) {
   ].join('') || '<p style="color:var(--text-2);font-size:13px">Tidak ada insight.</p>';
 
   // Table Tahun
-  document.getElementById('tTahun').innerHTML = data.summary_tahun.map(t=>`<tr>
+  document.getElementById('tTahun').innerHTML = (data.summary_tahun||[]).map(t=>`<tr>
     <td><strong>${t.tahun}</strong></td>
     <td>${t.total.toLocaleString('id-ID')}</td>
     <td><span style="font-weight:700;color:var(--anomaly-color)">${t.anomali}</span></td>
     <td><span style="font-weight:700;color:var(--normal-color)">${t.normal}</span></td>
-    <td><strong>${t.pct.toFixed(1)}%</strong></td>
+    <td><strong>${(t.total>0?(t.anomali/t.total*100):0).toFixed(1)}%</strong></td>
     <td style="min-width:120px">
       <div class="progress-bar-wrap">
-        <div class="progress-bar-fill" style="width:${Math.min(100,t.pct)}%;background:${t.pct>30?'#E53935':t.pct>15?'#FB8C00':'#43A047'}"></div>
+        <div class="progress-bar-fill" style="width:${Math.min(100,t.total>0?t.anomali/t.total*100:0)}%;background:${(t.anomali/t.total*100)>30?'#E53935':(t.anomali/t.total*100)>15?'#FB8C00':'#43A047'}"></div>
       </div>
     </td></tr>`).join('');
 
   // Table Golongan
   const namaMap = {};
   data.data.forEach(r => { namaMap[r.golongan] = r.nama_golongan; });
-  document.getElementById('tGolongan').innerHTML = data.summary_golongan.map(g=>`<tr>
+  document.getElementById('tGolongan').innerHTML = (data.summary_golongan||[]).map(g=>`<tr>
     <td><strong style="color:${Colors.getGol(g.golongan)}">${g.golongan}</strong></td>
     <td style="font-size:12px">${namaMap[g.golongan]||g.golongan}</td>
     <td>${g.total}</td>
     <td><span style="font-weight:700;color:var(--anomaly-color)">${g.anomali}</span></td>
     <td><span style="font-weight:700;color:var(--normal-color)">${g.normal}</span></td>
-    <td><strong>${g.pct.toFixed(1)}%</strong></td>
+    <td><strong>${(g.total>0?(g.anomali/g.total*100):0).toFixed(1)}%</strong></td>
     <td style="min-width:100px">
       <div class="progress-bar-wrap">
-        <div class="progress-bar-fill" style="width:${Math.min(100,g.pct)}%;background:${Colors.getGol(g.golongan)}"></div>
+        <div class="progress-bar-fill" style="width:${Math.min(100,g.total>0?g.anomali/g.total*100:0)}%;background:${Colors.getGol(g.golongan)}"></div>
       </div>
     </td></tr>`).join('');
 }
 
-function showAlert(msg,t='info') {
-  document.getElementById('alertBox').innerHTML=`<div class="alert-pdam alert-${t}">${msg}</div>`;
-}
 function exportCSV() {
   if(!curData) return showAlert('Tidak ada data.','warning');
   Export.toExcel(curData.data,'global_analysis_export');

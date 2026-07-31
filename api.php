@@ -3,6 +3,8 @@
  * PDAM Anomaly Detection System - Backend API
  * Kompatibel dengan XAMPP Windows
  */
+error_reporting(0);
+ini_set('display_errors', 0);
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
@@ -13,9 +15,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') exit(0);
 
 require_once __DIR__ . '/bootstrap.php';
 require_once __DIR__ . '/db_sync.php';
-
-
-
 
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
@@ -245,7 +244,7 @@ switch ($action) {
             'filename'      => $orig_name,
             'upload_id'     => $upload_id,
         ];
-        $hist_id = history_save($hist_params);  // BUG FIX: now returns int|false
+        $hist_id = history_save($hist_params);
 
         // Link history ke results
         if ($upload_id && $hist_id) {
@@ -274,7 +273,6 @@ switch ($action) {
             }
             // Atau ambil dari DB jika ada upload_id
             if (!empty($_SESSION['user_last_upload_id'])) {
-                // Gunakan db_get_analysis_full untuk format lengkap (meta + summary_golongan + data)
                 $data = db_get_analysis_full($_SESSION['user_last_upload_id']);
                 if ($data) {
                     respond(['status'=>'success','data'=>$data,'source'=>'database']);
@@ -294,7 +292,6 @@ switch ($action) {
         break;
         
     case 'cleanup_guest':
-        // Cleanup file guest saat logout atau session end
         if (!is_guest()) {
             respond(['status'=>'success','message'=>'Not a guest session']);
         }
@@ -313,8 +310,16 @@ switch ($action) {
         respond(['status'=>'success','cleaned'=>$cleaned]);
         break;
 
-    case 'load_history':
-        // Load data dari history ke session dan kembalikan JSON lengkap untuk ditampilkan di dashboard
+    case 'get_history':
+        $is_login = auth_check();
+        if (!$is_login) {
+            respond(['status'=>'error','message'=>'Login required'], 401);
+        }
+        $history = history_get($_SESSION['user_id'], 50);
+        respond(['status'=>'success','data'=>$history]);
+        break;
+
+        case 'load_history':
         $is_login = auth_check();
         if (!$is_login) {
             respond(['status'=>'error','message'=>'Login required'], 401);
@@ -330,7 +335,6 @@ switch ($action) {
             respond(['status'=>'error','message'=>'Database error'], 500);
         }
         
-        // Ambil history dan upload_id-nya
         $stmt = $pdo->prepare('
             SELECT h.*, h.upload_id 
             FROM analysis_history h 
@@ -339,19 +343,11 @@ switch ($action) {
         $stmt->execute([$history_id, $_SESSION['user_id']]);
         $history = $stmt->fetch();
         
-        // Debug logging
-        error_log('load_history: history_id=' . $history_id . ', user_id=' . $_SESSION['user_id']);
-        error_log('load_history: history found=' . ($history ? 'yes' : 'no'));
-        if ($history) {
-            error_log('load_history: upload_id=' . ($history['upload_id'] ?? 'NULL'));
-        }
-        
         if (!$history) {
             respond(['status'=>'error','message'=>'History record not found (ID: ' . $history_id . ')'], 404);
         }
         
         if (empty($history['upload_id'])) {
-            // History exists but no upload_id - likely old corrupted data
             respond([
                 'status'=>'error',
                 'message'=>'History record exists but has no associated data (ID: ' . $history_id . '). ' .
@@ -364,19 +360,16 @@ switch ($action) {
         
         $upload_id = (int)$history['upload_id'];
         
-        // Ambil data lengkap dari database (raw_data + analysis_results)
         $full_data = db_get_analysis_full($upload_id);
         
         if (!$full_data) {
             respond(['status'=>'error','message'=>'Data tidak ditemukan di database'], 404);
         }
         
-        // Set session agar bisa diakses di dashboard lain
         $_SESSION['user_last_upload_id'] = $upload_id;
         $_SESSION['user_last_result'] = $full_data;
         $_SESSION['last_upload_name'] = $history['filename'] ?? 'history_data.xlsx';
         
-        // Kembalikan JSON lengkap ke frontend untuk ditampilkan langsung
         respond([
             'status'=>'success',
             'upload_id'=>$upload_id,
@@ -384,7 +377,7 @@ switch ($action) {
             'message'=>'Data loaded from history',
             'source'=>'database',
             'record_count'=>count($full_data['data'] ?? []),
-            'data'=>$full_data  // <-- JSON lengkap untuk dashboard
+            'data'=>$full_data
         ]);
         break;
 

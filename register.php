@@ -1,13 +1,10 @@
 <!DOCTYPE html>
 <html lang="id" data-theme="light">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<?php include __DIR__ . '/includes/head_common.php'; ?>
   <title>Daftar Akun — PDAM Anomaly Detection</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
   <style>
-    body{font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg)}
+    body{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg)}
     .wrap{width:100%;max-width:440px;padding:20px}
     .card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:36px 32px;box-shadow:var(--shadow-xl)}
     .logo{display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:28px;text-align:center}
@@ -151,9 +148,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 
 <script>
-const t = localStorage.getItem('pdam_theme') || 'light';
-document.documentElement.setAttribute('data-theme', t);
-
 function togglePw(id, iconId) {
   const inp = document.getElementById(id);
   const ico = document.getElementById(iconId);

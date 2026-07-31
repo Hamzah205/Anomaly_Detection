@@ -4,48 +4,47 @@
 <!DOCTYPE html>
 <html lang="id" data-theme="light">
 <head>
-<script>document.documentElement.setAttribute("data-theme",localStorage.getItem("pdam_theme")||"light");</script>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<?php include __DIR__ . '/includes/head_common.php'; ?>
   <title>Visual Analytics — PDAM Anomaly Detection</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    body{font-family:'DM Sans',sans-serif}
     .chart-2col{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
     @media(max-width:700px){.chart-2col{grid-template-columns:1fr}}
     .sev-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;flex-shrink:0}
     .sev-high{color:var(--danger);font-weight:700}
     .sev-med{color:#FB8C00;font-weight:700}
     .sev-low{color:#F9A825;font-weight:700}
-    .badge-high{background:rgba(198,40,40,.12);color:var(--danger);border:1px solid rgba(198,40,40,.25);font-size:10px;font-weight:700;padding:2px 8px;border-radius:var(--radius-md);white-space:nowrap}
-    .badge-med{background:rgba(251,140,0,.12);color:#E65100;border:1px solid rgba(251,140,0,.25);font-size:10px;font-weight:700;padding:2px 8px;border-radius:var(--radius-md);white-space:nowrap}
-    .badge-low{background:rgba(249,168,37,.12);color:#F57F17;border:1px solid rgba(249,168,37,.25);font-size:10px;font-weight:700;padding:2px 8px;border-radius:var(--radius-md);white-space:nowrap}
-  
-  /* v2.0 Design Enhancements */
-  .card-pdam h2, .card-pdam h3 { font-family: 'Outfit', sans-serif; }
-  .stat-num { font-family: 'Outfit', sans-serif; font-weight: 800; letter-spacing: -0.5px; }
-  .badge-sev {
-    display: inline-flex; align-items: center; gap: 4px;
-    padding: 3px 9px; border-radius: 99px; font-size: 11px; font-weight: 700;
-    border: 1px solid transparent; font-family: 'DM Sans', sans-serif;
-  }
-  .badge-high   { background: rgba(225,29,72,0.1);  color: #B91C1C; border-color: rgba(225,29,72,0.2);  }
-  .badge-medium { background: rgba(217,119,6,0.1);  color: #92400E; border-color: rgba(217,119,6,0.2);  }
-  .badge-low    { background: rgba(5,150,105,0.1);  color: #065F46; border-color: rgba(5,150,105,0.2);  }
-  .badge-normal { background: rgba(8,145,178,0.1);  color: #0C4A6E; border-color: rgba(8,145,178,0.2);  }
-  [data-theme="dark"] .badge-high   { color: #FCA5A5; }
-  [data-theme="dark"] .badge-medium { color: #FCD34D; }
-  [data-theme="dark"] .badge-low    { color: #6EE7B7; }
-  [data-theme="dark"] .badge-normal { color: #7DD3FC; }
 
-  .grid-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 20px; }
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 20px; }
-  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-bottom: 20px; }
-  @media (max-width: 768px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+    /* Export Buttons */
+    .btn-export-excel, .btn-export-pdf {
+      display:inline-flex;align-items:center;gap:8px;padding:9px 18px;border:none;border-radius:10px;
+      font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;
+      transition:all .25s ease;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.08);
+    }
+    .btn-export-excel {
+      background:linear-gradient(135deg,#059669,#047857);color:#fff;
+    }
+    .btn-export-excel:hover {
+      background:linear-gradient(135deg,#047857,#065f46);transform:translateY(-2px);
+      box-shadow:0 6px 16px rgba(5,150,105,.35);
+    }
+    .btn-export-pdf {
+      background:linear-gradient(135deg,#EF4444,#DC2626);color:#fff;
+    }
+    .btn-export-pdf:hover {
+      background:linear-gradient(135deg,#DC2626,#B91C1C);transform:translateY(-2px);
+      box-shadow:0 6px 16px rgba(220,38,38,.35);
+    }
+    .btn-export-excel:active, .btn-export-pdf:active {
+      transform:translateY(0);
+    }
+    .btn-export-excel svg, .btn-export-pdf svg {
+      width:16px;height:16px;flex-shrink:0;
+    }
 </style>
 </head>
 <body>
@@ -93,13 +92,13 @@
       <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
       Filter
     </button>
-    <button class="btn-export" onclick="doExportCSV()">
-      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      CSV
+    <button class="btn-export-excel" onclick="doExportExcel()">
+      <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+      Export Excel
     </button>
-    <button class="btn-export" onclick="doExportPDF()" style="background:var(--danger)">
-      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-      PDF Grafik
+    <button class="btn-export-pdf" onclick="doExportPDF()">
+      <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      PDF Grafik + Data
     </button>
   </div>
 
@@ -144,7 +143,7 @@
       Z-Score Atribut Penyebab Anomali
     </div>
     <p style="font-size:12px;color:var(--text-2);margin-bottom:12px">
-      Ditampilkan untuk <strong>semua data anomali</strong> (terdeteksi oleh Isolation Forest). Z-Score hanya untuk interpretasi — bukan penentu anomali. Top-2 atribut dengan penyimpangan terbesar ditampilkan per baris.
+      Menampilkan data sesuai filter aktif, termasuk data normal. Untuk data anomali, atribut penyebab (Z-Score) ditampilkan sebagai interpretasi tambahan — bukan penentu status anomali.
     </p>
     <div class="table-wrapper">
       <table class="tbl">
@@ -183,7 +182,12 @@ const SEV_COLOR = { high:'var(--danger)', medium:'#FB8C00', low:'#F9A825', norma
 const SEV_LABEL = { high:'High', medium:'Medium', low:'Low', normal:'Normal' };
 
 function sevBadge(lvl) {
-  const cls = {high:'badge-sev badge-high', medium:'badge-sev badge-medium', low:'badge-sev badge-low'}[lvl] || '';
+  const cls = {
+    high:'badge-sev badge-high',
+    medium:'badge-sev badge-medium',
+    low:'badge-sev badge-low',
+    normal:'badge-sev badge-normal'
+  }[lvl] || '';
   return `<span class="${cls}">${SEV_LABEL[lvl]||lvl}</span>`;
 }
 
@@ -359,20 +363,33 @@ function renderMainTable() {
 }
 
 function renderZTable() {
-  // Tampilkan SEMUA anomali yang punya causes (tidak filter berdasarkan nilai Z)
-  // Isolation Forest sudah menentukan anomali; Z-Score hanya untuk interpretasi
-  const anom = filtered.filter(r => r.is_anomaly && r.causes && r.causes.length > 0);
-  const page = zPag.slice(anom);
+  // Sekarang ikut filter aktif (fTipe/fSev) — bisa nampilkan data normal juga,
+  // bukan cuma anomali seperti sebelumnya.
+  const page = zPag.slice(filtered);
   document.getElementById('zBody').innerHTML = page.map(r => {
-    const isCombo = r.causes.some(c => c.combination_note);
-    const chips = r.causes.map(c => {
-      // Label severity hanya untuk pewarnaan — bukan threshold filter
+    // Data normal: tidak ada causes, tampilkan strip "—"
+    if (!r.is_anomaly) {
+      return `<tr>
+        <td>${r.tahun}</td><td style="font-size:11px">${r.bulan}</td>
+        <td><strong style="color:${Colors.getGol(r.golongan)}">${r.golongan}</strong></td>
+        <td>${sevBadge('normal')}</td>
+        <td style="font-size:12px">${Fmt.rp(r.rp)}</td>
+        <td style="font-size:12px">${r.m3.toLocaleString('id-ID')}</td>
+        <td style="font-size:12px">${Fmt.num(r.rp_per_m3)}</td>
+        <td style="font-size:11px;color:var(--text-2)">—</td>
+      </tr>`;
+    }
+
+    const causes = r.causes || [];
+    const isCombo = causes.some(c => c.combination_note);
+    const chips = causes.map(c => {
       const cls = c.zscore >= 3 ? 'zscore-high' : c.zscore >= 2 ? 'zscore-med' : 'zscore-low';
       return `<span class="zscore-tag ${cls}" title="${c.penjelasan}">${c.atribut} z=${c.zscore >= 0 ? '+' : ''}${c.zscore_raw?.toFixed(2) || c.zscore}</span>`;
     }).join('');
     const comboNote = isCombo
       ? `<span class="zscore-tag" style="background:rgba(8,145,178,.12);color:#0369a1;border:1px solid rgba(8,145,178,.25);font-size:10px" title="Tidak ada satu atribut yang sangat ekstrem. Anomali terjadi karena kombinasi pola keseluruhan yang tidak lazim (ditentukan oleh Isolation Forest).">⚠ kombinasi</span>`
       : '';
+
     return `<tr class="row-anomaly">
       <td>${r.tahun}</td><td style="font-size:11px">${r.bulan}</td>
       <td><strong style="color:${Colors.getGol(r.golongan)}">${r.golongan}</strong></td>
@@ -382,19 +399,58 @@ function renderZTable() {
       <td style="font-size:12px">${Fmt.num(r.rp_per_m3)}</td>
       <td>${chips}${comboNote}</td>
     </tr>`;
-  }).join('') || '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text-2)">Tidak ada data anomali</td></tr>';
-  zPag.renderControls(anom, 'zPag', renderZTable);
+  }).join('') || '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text-2)">Tidak ada data</td></tr>';
+
+  zPag.renderControls(filtered, 'zPag', renderZTable);
 }
 
-// ===== EXPORT CSV =====
-function doExportCSV() {
+// Helper: format causes jadi teks singkat "Main: m3 (+2.48) | Supporting: Rp (+2.39)"
+function causesToText(r) {
+  if (!r.is_anomaly || !r.causes || !r.causes.length) return '—';
+  const labels = ['Main', 'Supporting'];
+  return r.causes.map((c, i) => {
+    const sign = c.zscore_raw >= 0 ? '+' : '';
+    return `${labels[i] || `Cause${i+1}`}: ${c.atribut} (z=${sign}${(c.zscore_raw ?? c.zscore).toFixed?.(2) ?? c.zscore})`;
+  }).join(' | ');
+}
+
+// ===== EXPORT EXCEL (full data sesuai filter lokal) =====
+function doExportExcel() {
   if (!filtered.length) { showAlert('Tidak ada data.','warning'); return; }
-  Export.toExcel(filtered,'visual_analytics_d3');
+  Loading.show('Membuat file Excel...');
+  try {
+    const rows = filtered.map(r => ({
+      'Tahun'         : r.tahun,
+      'Bulan'         : r.bulan,
+      'Golongan'      : r.golongan,
+      'Nama Golongan' : r.nama_golongan,
+      'Rp'            : r.rp,
+      'M3'            : r.m3,
+      'Rp/M3'         : parseFloat(r.rp_per_m3.toFixed(4)),
+      'Status'        : r.is_anomaly ? 'Anomali' : 'Normal',
+      'Tingkat'       : r.is_anomaly ? (r.anomaly_level || '—') : 'normal',
+      'Score'         : parseFloat(r.anomaly_score.toFixed(6)),
+      'Penyebab (Z-Score)': causesToText(r),
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    ws['!cols'] = [
+      {wch:6},{wch:12},{wch:9},{wch:28},{wch:18},{wch:10},{wch:12},{wch:10},{wch:10},{wch:14},{wch:40}
+    ];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Visual Analytics');
+    XLSX.writeFile(wb, 'visual_analytics_d3_' + new Date().toISOString().slice(0,10) + '.xlsx');
+    showAlert(`Excel berhasil dibuat — ${filtered.length} data (sesuai filter aktif).`, 'success');
+  } catch(e) {
+    showAlert('Export Excel gagal: ' + e.message, 'danger');
+  } finally {
+    Loading.hide();
+  }
 }
 
-// ===== EXPORT PDF GRAFIK =====
+// ===== EXPORT PDF: Grafik + Tabel Data Lengkap (sesuai filter lokal) =====
 async function doExportPDF() {
-  Loading.show('Membuat PDF grafik...');
+  if (!filtered.length) { showAlert('Tidak ada data.','warning'); return; }
+  Loading.show('Membuat PDF grafik & data...');
   try {
     const { jsPDF } = window.jspdf;
     const section   = document.getElementById('chartsSection');
@@ -406,18 +462,16 @@ async function doExportPDF() {
     const ratio     = canvas.height / canvas.width;
     const imgH      = pdfW * ratio;
 
-    // Header
+    // ---- Halaman 1+: Grafik ----
     pdf.setFontSize(13); pdf.setFont('helvetica','bold');
     pdf.text('Visual Analytics — PDAM Anomaly Detection', 14, 12);
     pdf.setFontSize(9); pdf.setFont('helvetica','normal');
     pdf.text('Perumdam Tirta Kencana Samarinda', 14, 18);
 
-    // Filter info
     const banner = document.getElementById('filterBanner');
-    if (banner.style.display !== 'none') {
-      pdf.setFontSize(8);
-      pdf.text(banner.textContent, 14, 24);
-    }
+    const filterText = banner.style.display !== 'none' ? banner.textContent : `Semua data — ${filtered.length} baris`;
+    pdf.setFontSize(8);
+    pdf.text(filterText, 14, 24);
     pdf.text('Dicetak: '+new Date().toLocaleString('id-ID'), pdfW-14, 24, {align:'right'});
 
     const startY = 28;
@@ -425,7 +479,7 @@ async function doExportPDF() {
     const finalH = Math.min(imgH, availH);
     pdf.addImage(imgData, 'JPEG', 0, startY, pdfW, finalH);
 
-    // Multi-page jika grafik terlalu panjang
+    // Multi-page jika grafik terlalu panjang untuk 1 halaman
     if (imgH > availH) {
       let yOffset = availH;
       while (yOffset < imgH) {
@@ -435,15 +489,53 @@ async function doExportPDF() {
       }
     }
 
-    pdf.save('visual_analytics_pdam.pdf');
+    // ---- Halaman berikutnya: Tabel Data Lengkap (SEMUA baris sesuai filter, auto-paginate) ----
+    pdf.addPage();
+    pdf.setFontSize(13); pdf.setFont('helvetica','bold');
+    pdf.text('Tabel Data Lengkap', 14, 14);
+    pdf.setFontSize(8); pdf.setFont('helvetica','normal');
+    pdf.text(filterText + ` — total ${filtered.length} baris`, 14, 20);
+
+    const bodyRows = filtered.map(r => [
+      r.tahun,
+      r.bulan,
+      r.golongan,
+      r.nama_golongan,
+      Fmt.rp(r.rp),
+      r.m3.toLocaleString('id-ID'),
+      Fmt.num(r.rp_per_m3),
+      r.is_anomaly ? 'Anomali' : 'Normal',
+      r.is_anomaly ? (r.anomaly_level || '—') : 'normal',
+      r.anomaly_score.toFixed(4),
+      causesToText(r),
+    ]);
+
+    pdf.autoTable({
+      startY: 24,
+      head: [['Tahun','Bulan','Golongan','Nama Golongan','Rp','M3','Rp/M3','Status','Tingkat','Score','Penyebab (Z-Score)']],
+      body: bodyRows,
+      styles: { fontSize: 7, cellPadding: 1.5 },
+      headStyles: { fillColor: [21, 101, 192], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [245, 247, 250] },
+      didParseCell: (data) => {
+        if (data.section === 'body' && data.column.index === 7 && data.cell.raw === 'Anomali') {
+          data.cell.styles.textColor = [198, 40, 40];
+          data.cell.styles.fontStyle = 'bold';
+        }
+      },
+      columnStyles: { 10: { cellWidth: 70 } },
+      margin: { left: 10, right: 10 },
+      theme: 'grid',
+    });
+
+    pdf.save('visual_analytics_pdam_' + new Date().toISOString().slice(0,10) + '.pdf');
+    showAlert(`PDF berhasil dibuat — grafik + ${filtered.length} data (sesuai filter aktif).`, 'success');
   } catch(e) {
     showAlert('Export PDF gagal: '+e.message,'danger');
   } finally {
     Loading.hide();
   }
 }
-
-function showAlert(m,t) { document.getElementById('alertBox').innerHTML=`<div class="alert-pdam alert-${t}">${m}</div>`; }
 
 load();
 </script>

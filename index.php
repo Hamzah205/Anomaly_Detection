@@ -3,6 +3,7 @@
 ?>
 <!DOCTYPE html>
 <html lang="id" data-theme="light">
+<script>document.documentElement.setAttribute('data-theme', localStorage.getItem('pdam_theme') || 'light');</script>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1326,11 +1327,11 @@
         PDAM Anomaly
       </div>
       <p class="footer-text">
-        © 2024 PDAM Anomaly Detection System.<br>
+        © 2026 PDAM Anomaly Detection System.<br>
         Dibangun untuk kemajuan PDAM Indonesia.
       </p>
       <div class="footer-credit">
-        Created by <a href="https://github.com/Hamza045S" target="_blank">Mohammad Ilham Arifin / Hamza045S</a>
+        Created by <a href="https://github.com/Hamza045S" target="_blank">Mohammad Ilham Arifin / @Hamza045S</a>
       </div>
     </div>
   </footer>
@@ -1343,11 +1344,11 @@
       const currentTheme = html.getAttribute('data-theme');
       const newTheme = currentTheme === 'light' ? 'dark' : 'light';
       html.setAttribute('data-theme', newTheme);
-      localStorage.setItem('theme', newTheme);
+      localStorage.setItem('pdam_theme', newTheme);
     }
 
-    // Check for saved theme preference
-    const savedTheme = localStorage.getItem('theme');
+    // Check for saved theme preference (sync with dashboards)
+    const savedTheme = localStorage.getItem('pdam_theme');
     if (savedTheme) {
       document.documentElement.setAttribute('data-theme', savedTheme);
     } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {

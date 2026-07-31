@@ -4,14 +4,9 @@
 <!DOCTYPE html>
 <html lang="id" data-theme="light">
 <head>
-<script>document.documentElement.setAttribute("data-theme",localStorage.getItem("pdam_theme")||"light");</script>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<?php include __DIR__ . '/includes/head_common.php'; ?>
   <title>Upload & Parameter — PDAM Anomaly Detection</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
   <style>
-    body{font-family:'DM Sans',sans-serif}
     .hero{background:linear-gradient(135deg,#0D47A1,var(--primary) 50%,#1976D2);border-radius:16px;padding:28px 32px;margin-bottom:24px;display:flex;align-items:center;gap:20px;color:#fff;position:relative;overflow:hidden}
     .hero::before{content:'';position:absolute;right:-40px;top:-40px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.06)}
     .hero-logo{height:68px;filter:drop-shadow(0 4px 14px rgba(0,0,0,.3));flex-shrink:0;z-index:1}
@@ -72,28 +67,6 @@
     .btn-ghost:hover{border-color:var(--primary);color:var(--primary)}
     code{background:rgba(0,0,0,.07);border-radius:4px;padding:2px 6px;font-size:11px;font-family:monospace}
     [data-theme=dark] code{background:rgba(255,255,255,.1)}
-  
-  /* v2.0 Design Enhancements */
-  .card-pdam h2, .card-pdam h3 { font-family: 'Outfit', sans-serif; }
-  .stat-num { font-family: 'Outfit', sans-serif; font-weight: 800; letter-spacing: -0.5px; }
-  .badge-sev {
-    display: inline-flex; align-items: center; gap: 4px;
-    padding: 3px 9px; border-radius: 99px; font-size: 11px; font-weight: 700;
-    border: 1px solid transparent; font-family: 'DM Sans', sans-serif;
-  }
-  .badge-high   { background: rgba(225,29,72,0.1);  color: #B91C1C; border-color: rgba(225,29,72,0.2);  }
-  .badge-medium { background: rgba(217,119,6,0.1);  color: #92400E; border-color: rgba(217,119,6,0.2);  }
-  .badge-low    { background: rgba(5,150,105,0.1);  color: #065F46; border-color: rgba(5,150,105,0.2);  }
-  .badge-normal { background: rgba(8,145,178,0.1);  color: #0C4A6E; border-color: rgba(8,145,178,0.2);  }
-  [data-theme="dark"] .badge-high   { color: #FCA5A5; }
-  [data-theme="dark"] .badge-medium { color: #FCD34D; }
-  [data-theme="dark"] .badge-low    { color: #6EE7B7; }
-  [data-theme="dark"] .badge-normal { color: #7DD3FC; }
-
-  .grid-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 20px; }
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 20px; }
-  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-bottom: 20px; }
-  @media (max-width: 768px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -183,13 +156,12 @@
     </div>
     <p style="font-size:12px;color:var(--text-2);margin-bottom:14px">Dapat diubah kapan saja dari Dashboard 2 (Global Filter).</p>
     <div style="display:flex;flex-direction:column;gap:10px" id="mOpts">
-      <label class="opt sel"><input type="radio" name="mode" value="near_tahun_per_golongan" checked>
-        <div><div class="ot">Near Tahun per Golongan (Default)</div>
-          <div class="od">Analisis per tahun &amp; per golongan dengan grouping — menghindari bias. Direkomendasikan untuk analisis rutin.</div></div></label>
-      <label class="opt"><input type="radio" name="mode" value="near_tahun_near_golongan">
-        <div><div class="ot">Near Tahun vs Near Golongan</div>
-          <div class="od">Semua data digabung tanpa grouping — untuk deteksi bias antar golongan.</div></div></label>
-    </div>
+      <label class="opt sel"><input type="radio" name="mode" value="multi_tahun_semua_golongan" checked>
+  <div><div class="ot">Mode Global (Default)</div>
+    <div class="od">Analisis dilakukan terhadap seluruh data dari semua tahun dan semua golongan sekaligus tanpa pembatasan apapun.</div></div></label>
+<label class="opt"><input type="radio" name="mode" value="multi_tahun_per_golongan">
+  <div><div class="ot">Mode Golongan</div>
+    <div class="od">Analisis dilakukan pada seluruh data historis (semua tahun) dalam golongan yang sama — setiap golongan dianalisis secara terpisah.</div></div></label>
   </div>
 
   <!-- Buttons -->

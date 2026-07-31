@@ -1,6 +1,6 @@
 <?php require_once __DIR__ . '/bootstrap.php';
 // Process login and redirects BEFORE any output
-if (auth_check()) { header('Location: index.php'); exit; }
+if (auth_check()) { header('Location: dashboard1.php'); exit; }
 
 $error = ''; $success = ''; $db_ok = db_available();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -11,9 +11,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $result = auth_login($login, $password);
         if ($result['ok']) {
-            $redirect = $_GET['redirect'] ?? 'index.php';
+            $redirect = $_GET['redirect'] ?? 'dashboard1.php';
             $allowed  = ['index.php','dashboard1.php','dashboard2.php','dashboard3.php','dashboard4.php','history.php'];
-            if (!in_array($redirect, $allowed)) $redirect = 'index.php';
+            if (!in_array($redirect, $allowed)) $redirect = 'dashboard1.php';
             header('Location: ' . $redirect); exit;
         } else {
             $error = $result['message'];
@@ -26,11 +26,8 @@ if (isset($_GET['logged_out'])) $success = 'Anda telah logout. Sampai jumpa!';
 <!DOCTYPE html>
 <html lang="id" data-theme="light">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<?php include __DIR__ . '/includes/head_common.php'; ?>
   <title>Login — PDAM Anomaly Detection</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
   <style>
     body {
       display: flex; align-items: center; justify-content: center;
@@ -65,7 +62,7 @@ if (isset($_GET['logged_out'])) $success = 'Anda telah logout. Sampai jumpa!';
       font-size: 14px; font-family: 'DM Sans', sans-serif; outline: none;
       transition: border-color .2s, box-shadow .2s; box-sizing: border-box;
     }
-    .form-group input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(29,111,207,0.12); }
+    .form-group input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.14); }
 
     .pw-wrap { position: relative; }
     .pw-wrap input { padding-right: 42px; }
@@ -76,9 +73,9 @@ if (isset($_GET['logged_out'])) $success = 'Anda telah logout. Sampai jumpa!';
       width: 100%; padding: 13px; background: var(--primary); color: #fff; border: none;
       border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; cursor: pointer;
       font-family: 'DM Sans', sans-serif; transition: all .2s; margin-top: 4px;
-      box-shadow: 0 4px 14px rgba(29,111,207,0.35);
+      box-shadow: 0 4px 14px rgba(99,102,241,0.35);
     }
-    .btn-login:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(29,111,207,0.4); }
+    .btn-login:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(99,102,241,0.4); }
     .btn-login:disabled { opacity:.6; cursor:not-allowed; transform:none; box-shadow:none; }
 
     .divider { text-align:center; font-size:12px; color:var(--text-3); margin:20px 0; position:relative; }
@@ -91,7 +88,7 @@ if (isset($_GET['logged_out'])) $success = 'Anda telah logout. Sampai jumpa!';
       font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif;
       transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 7px;
     }
-    .btn-guest:hover { border-color: var(--primary); color: var(--primary); background: rgba(29,111,207,0.04); }
+    .btn-guest:hover { border-color: var(--primary); color: var(--primary); background: rgba(99,102,241,0.05); }
 
     .link-register { text-align:center; font-size:12px; color:var(--text-2); margin-top:20px; }
     .link-register a { color: var(--primary); font-weight: 700; text-decoration: none; }
@@ -175,9 +172,6 @@ if (isset($_GET['logged_out'])) $success = 'Anda telah logout. Sampai jumpa!';
 </div>
 
 <script>
-const t = localStorage.getItem('pdam_theme') || 'light';
-document.documentElement.setAttribute('data-theme', t);
-
 function togglePw() {
   const inp = document.getElementById('pwInput');
   const ico = document.getElementById('eyeIcon');

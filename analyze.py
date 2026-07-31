@@ -131,37 +131,6 @@ def assign_severity(scores_arr, is_anomaly_arr):
     return levels
 
 
-def apply_severity_by_group(df, group_cols=None):
-    """
-    Hitung anomaly_level (severity) dengan mengelompokkan baris sesuai
-    group_cols, supaya severity "ikut" grouping/filter yang sama dengan
-    yang dipakai untuk deteksi anomali di masing-masing mode.
-
-    - group_cols=None        -> 1 grup untuk seluruh df (global)
-    - group_cols=['Golongan']-> per golongan (gabung semua tahun dalam
-                                 golongan itu, sample cukup besar)
-    - group_cols=['Tahun']   -> per tahun (gabung semua golongan
-                                 dalam tahun itu)
-
-    Ini mencegah bug lama (severity dihitung dari grup SANGAT kecil,
-    misal per golongan+tahun yang cuma 1 anomali -> selalu HIGH),
-    sekaligus menjaga severity tetap relevan terhadap konteks grup
-    (golongan/tahun) yang sedang dipakai, bukan dicampur rata semuanya.
-    """
-    if group_cols is None:
-        scores  = df['anomaly_score'].values
-        is_anom = df['is_anomaly'].values
-        df['anomaly_level'] = assign_severity(scores, is_anom)
-        return df
-
-    for _, idx in df.groupby(group_cols).groups.items():
-        scores  = df.loc[idx, 'anomaly_score'].values
-        is_anom = df.loc[idx, 'is_anomaly'].values
-        severity = assign_severity(scores, is_anom)
-        df.loc[idx, 'anomaly_level'] = severity
-    return df
-
-
 # ─────────────────────────────────────────
 # 3. Z-SCORE CAUSES — lebih kaya informasi
 # ─────────────────────────────────────────
@@ -359,12 +328,10 @@ def analyze(filepath, contamination='0.05', mode='near_tahun_per_golongan',
                     group_stats[key][attr] = {'mean': sub[attr].mean(), 'std': sub[attr].std()}
                 labels, scores = run_isolation_forest(sub, contamination)
                 is_anom = (labels == -1).astype(int)
+                severity = assign_severity(scores, is_anom)
                 df.loc[sub.index, 'is_anomaly']    = is_anom
                 df.loc[sub.index, 'anomaly_score'] = scores
-        # PERBAIKAN: severity dihitung PER GOLONGAN (gabung semua tahun),
-        # bukan per golongan+tahun (kekecilan -> selalu HIGH) dan bukan
-        # digabung rata semua golongan (kehilangan konteks golongan).
-        apply_severity_by_group(df, group_cols=['Golongan'])
+                df.loc[sub.index, 'anomaly_level'] = severity
 
     # ── Mode 2: Near Tahun Near Golongan ──
     # Setiap baris dibandingkan dalam konteks: tahun SAMA, semua golongan digabung
@@ -380,11 +347,10 @@ def analyze(filepath, contamination='0.05', mode='near_tahun_per_golongan',
                 group_stats[key][attr] = {'mean': sub[attr].mean(), 'std': sub[attr].std()}
             labels, scores = run_isolation_forest(sub, contamination)
             is_anom  = (labels == -1).astype(int)
+            severity = assign_severity(scores, is_anom)
             df.loc[sub.index, 'is_anomaly']    = is_anom
             df.loc[sub.index, 'anomaly_score'] = scores
-        # Severity per tahun — sudah sama dengan grup deteksinya, jadi
-        # sample-nya sudah cukup besar (gabungan semua golongan di tahun itu).
-        apply_severity_by_group(df, group_cols=['Tahun'])
+            df.loc[sub.index, 'anomaly_level'] = severity
 
     # ── Mode 3 & 4: Multi Tahun ──
     elif mode in ('multi_tahun_semua_golongan', 'multi_tahun_per_golongan'):
@@ -399,10 +365,10 @@ def analyze(filepath, contamination='0.05', mode='near_tahun_per_golongan',
                     group_stats[key][attr] = {'mean': sub[attr].mean(), 'std': sub[attr].std()}
                 labels, scores = run_isolation_forest(sub, contamination)
                 is_anom  = (labels == -1).astype(int)
+                severity = assign_severity(scores, is_anom)
                 df.loc[sub.index, 'is_anomaly']    = is_anom
                 df.loc[sub.index, 'anomaly_score'] = scores
-            # Severity per golongan — sama dengan grup deteksinya.
-            apply_severity_by_group(df, group_cols=['Golongan'])
+                df.loc[sub.index, 'anomaly_level'] = severity
         else:
             # Semua tahun + semua golongan digabung sekaligus
             key = ('ALL',)
@@ -411,10 +377,10 @@ def analyze(filepath, contamination='0.05', mode='near_tahun_per_golongan',
                 group_stats[key][attr] = {'mean': df[attr].mean(), 'std': df[attr].std()}
             labels, scores = run_isolation_forest(df, contamination)
             is_anom  = (labels == -1).astype(int)
+            severity = assign_severity(scores, is_anom)
             df['is_anomaly']    = is_anom
             df['anomaly_score'] = scores
-            # Cuma ada 1 grup (semua data), jadi severity dihitung global.
-            apply_severity_by_group(df, group_cols=None)
+            df['anomaly_level'] = severity
 
     # ── Hitung Z-Score causes untuk semua anomali ──
     for idx, row in df[df['is_anomaly'] == 1].iterrows():
@@ -452,11 +418,10 @@ def analyze_json(json_file_path='stdin', contamination='0.05', mode='near_tahun_
                     group_stats[key][attr] = {'mean': sub[attr].mean(), 'std': sub[attr].std()}
                 labels, scores = run_isolation_forest(sub, contamination)
                 is_anom = (labels == -1).astype(int)
+                severity = assign_severity(scores, is_anom)
                 df.loc[sub.index, 'is_anomaly']    = is_anom
                 df.loc[sub.index, 'anomaly_score'] = scores
-        # Severity per golongan (gabung semua tahun) — lihat penjelasan
-        # di apply_severity_by_group().
-        apply_severity_by_group(df, group_cols=['Golongan'])
+                df.loc[sub.index, 'anomaly_level'] = severity
 
     # ── Mode 2: Near Tahun Near Golongan ──
     # Filter per tahun, semua golongan dalam tahun itu dibandingkan bersama
@@ -470,10 +435,10 @@ def analyze_json(json_file_path='stdin', contamination='0.05', mode='near_tahun_
                 group_stats[key][attr] = {'mean': sub[attr].mean(), 'std': sub[attr].std()}
             labels, scores = run_isolation_forest(sub, contamination)
             is_anom  = (labels == -1).astype(int)
+            severity = assign_severity(scores, is_anom)
             df.loc[sub.index, 'is_anomaly']    = is_anom
             df.loc[sub.index, 'anomaly_score'] = scores
-        # Severity per tahun — sama dengan grup deteksinya.
-        apply_severity_by_group(df, group_cols=['Tahun'])
+            df.loc[sub.index, 'anomaly_level'] = severity
 
     # ── Mode 3 & 4: Multi Tahun ──
     elif mode in ('multi_tahun_semua_golongan', 'multi_tahun_per_golongan'):
@@ -488,10 +453,10 @@ def analyze_json(json_file_path='stdin', contamination='0.05', mode='near_tahun_
                     group_stats[key][attr] = {'mean': sub[attr].mean(), 'std': sub[attr].std()}
                 labels, scores = run_isolation_forest(sub, contamination)
                 is_anom  = (labels == -1).astype(int)
+                severity = assign_severity(scores, is_anom)
                 df.loc[sub.index, 'is_anomaly']    = is_anom
                 df.loc[sub.index, 'anomaly_score'] = scores
-            # Severity per golongan — sama dengan grup deteksinya.
-            apply_severity_by_group(df, group_cols=['Golongan'])
+                df.loc[sub.index, 'anomaly_level'] = severity
         else:
             # Semua tahun + semua golongan digabung sekaligus
             key = ('ALL',)
@@ -500,10 +465,10 @@ def analyze_json(json_file_path='stdin', contamination='0.05', mode='near_tahun_
                 group_stats[key][attr] = {'mean': df[attr].mean(), 'std': df[attr].std()}
             labels, scores = run_isolation_forest(df, contamination)
             is_anom  = (labels == -1).astype(int)
+            severity = assign_severity(scores, is_anom)
             df['is_anomaly']    = is_anom
             df['anomaly_score'] = scores
-            # Cuma 1 grup (semua data), severity dihitung global.
-            apply_severity_by_group(df, group_cols=None)
+            df['anomaly_level'] = severity
 
     # ── Hitung Z-Score causes untuk semua anomali ──
     for idx, row in df[df['is_anomaly'] == 1].iterrows():

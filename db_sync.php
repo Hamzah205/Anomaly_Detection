@@ -40,20 +40,20 @@ function db_sync_results(array $json_result, string $filename, ?int $user_id = n
         // ── 1. Insert ke tabel uploads ──
         if ($is_pgsql) {
             // PostgreSQL: pakai RETURNING id
-            $stmt = $pdo->prepare('
+            $stmt = $pdo->prepare("
                 INSERT INTO uploads
                     (uuid, user_id, original_name, stored_name, total_rows,
                      tahun_min, tahun_max, golongan_list)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 RETURNING id
-            ');
+            ");
         } else {
-            $stmt = $pdo->prepare('
+            $stmt = $pdo->prepare("
                 INSERT INTO uploads
                     (uuid, user_id, original_name, stored_name, total_rows,
                      tahun_min, tahun_max, golongan_list)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ');
+            ");
         }
         $stmt->execute([
             bin2hex(random_bytes(16)),
@@ -76,7 +76,7 @@ function db_sync_results(array $json_result, string $filename, ?int $user_id = n
 
         // ── 3. Insert raw_data ──
         if ($is_pgsql) {
-            $rawStmt = $pdo->prepare('
+            $rawStmt = $pdo->prepare("
                 INSERT INTO raw_data
                     (upload_id, tahun, bulan, bulan_num,
                      golongan, nama_golongan, rp, m3, rp_per_m3)
@@ -89,9 +89,9 @@ function db_sync_results(array $json_result, string $filename, ?int $user_id = n
                     rp_per_m3 = EXCLUDED.rp_per_m3,
                     updated_at = CURRENT_TIMESTAMP
                 RETURNING id
-            ');
+            ");
         } else {
-            $rawStmt = $pdo->prepare('
+            $rawStmt = $pdo->prepare("
                 INSERT INTO raw_data
                     (upload_id, tahun, bulan, bulan_num,
                      golongan, nama_golongan, rp, m3, rp_per_m3)
@@ -102,18 +102,18 @@ function db_sync_results(array $json_result, string $filename, ?int $user_id = n
                     m3 = VALUES(m3),
                     rp_per_m3 = VALUES(rp_per_m3),
                     updated_at = CURRENT_TIMESTAMP
-            ');
+            ");
         }
 
         // Statement untuk ambil raw_data_id (fallback kalau tidak RETURNING)
-        $getIdStmt = $pdo->prepare('
+        $getIdStmt = $pdo->prepare("
             SELECT id FROM raw_data
             WHERE upload_id = ? AND tahun = ? AND bulan_num = ? AND golongan = ?
-        ');
+        ");
 
         // ── 4. Insert analysis_results ──
         if ($is_pgsql) {
-            $resStmt = $pdo->prepare('
+            $resStmt = $pdo->prepare("
                 INSERT INTO analysis_results
                     (raw_data_id, upload_id, is_anomaly,
                      anomaly_score, anomaly_level, causes_json)
@@ -124,9 +124,9 @@ function db_sync_results(array $json_result, string $filename, ?int $user_id = n
                     anomaly_score = EXCLUDED.anomaly_score,
                     anomaly_level = EXCLUDED.anomaly_level,
                     causes_json = EXCLUDED.causes_json
-            ');
+            ");
         } else {
-            $resStmt = $pdo->prepare('
+            $resStmt = $pdo->prepare("
                 INSERT INTO analysis_results
                     (raw_data_id, upload_id, is_anomaly,
                      anomaly_score, anomaly_level, causes_json)
@@ -136,7 +136,7 @@ function db_sync_results(array $json_result, string $filename, ?int $user_id = n
                     anomaly_score = VALUES(anomaly_score),
                     anomaly_level = VALUES(anomaly_level),
                     causes_json = VALUES(causes_json)
-            ');
+            ");
         }
 
         foreach ($data as $row) {
@@ -214,16 +214,16 @@ function db_link_history(int $upload_id, int $history_id): void {
 function db_get_upload_stats(int $upload_id): array {
     $pdo = db_connect();
     if (!$pdo) return [];
-    $stmt = $pdo->prepare('
+    $stmt = $pdo->prepare("
         SELECT
             COUNT(*) AS total,
-            SUM(CASE WHEN is_anomaly THEN 1 ELSE 0 END) AS anomali,
-            SUM(CASE WHEN anomaly_level = \'high\'   THEN 1 ELSE 0 END) AS high_cnt,
-            SUM(CASE WHEN anomaly_level = \'medium\' THEN 1 ELSE 0 END) AS medium_cnt,
-            SUM(CASE WHEN anomaly_level = \'low\'    THEN 1 ELSE 0 END) AS low_cnt
+            SUM(is_anomaly::int) AS anomali,
+            SUM(CASE WHEN anomaly_level = 'high'   THEN 1 ELSE 0 END) AS high_cnt,
+            SUM(CASE WHEN anomaly_level = 'medium' THEN 1 ELSE 0 END) AS medium_cnt,
+            SUM(CASE WHEN anomaly_level = 'low'    THEN 1 ELSE 0 END) AS low_cnt
         FROM analysis_results
         WHERE upload_id = ?
-    ');
+    ");
     $stmt->execute([$upload_id]);
     return $stmt->fetch() ?: [];
 }
@@ -261,23 +261,51 @@ function db_get_analysis_full(int $upload_id): ?array {
     }
 
     // Get summary per golongan
-    $stmt = $pdo->prepare('
+    $stmt = $pdo->prepare("
         SELECT 
             rd.golongan,
+            MAX(rd.nama_golongan) as nama_golongan,
             COUNT(*) as total,
-            SUM(ar.is_anomaly) as anomali,
-            COUNT(*) - SUM(ar.is_anomaly) as normal
+            SUM(ar.is_anomaly::int) as anomali,
+            COUNT(*) - SUM(ar.is_anomaly::int) as normal,
+            ROUND(SUM(ar.is_anomaly::int) * 100.0 / COUNT(*), 2) as pct
         FROM raw_data rd
         JOIN analysis_results ar ON ar.raw_data_id = rd.id
         WHERE ar.upload_id = ?
         GROUP BY rd.golongan
         ORDER BY rd.golongan
-    ');
+    ");
     $stmt->execute([$upload_id]);
     $summary_golongan = $stmt->fetchAll();
 
+    // Get summary per tahun
+    $stmt = $pdo->prepare("
+        SELECT 
+            rd.tahun,
+            COUNT(*) as total,
+            SUM(ar.is_anomaly::int) as anomali,
+            COUNT(*) - SUM(ar.is_anomaly::int) as normal,
+            ROUND(SUM(ar.is_anomaly::int) * 100.0 / COUNT(*), 2) as pct
+        FROM raw_data rd
+        JOIN analysis_results ar ON ar.raw_data_id = rd.id
+        WHERE ar.upload_id = ?
+        GROUP BY rd.tahun
+        ORDER BY rd.tahun
+    ");
+    $stmt->execute([$upload_id]);
+    $summary_tahun_raw = $stmt->fetchAll();
+    $summary_tahun = array_map(function($t) {
+        return [
+            'tahun'  => (int)$t['tahun'],
+            'total'  => (int)$t['total'],
+            'anomali'=> (int)$t['anomali'],
+            'normal' => (int)$t['normal'],
+            'pct'    => (float)$t['pct'],
+        ];
+    }, $summary_tahun_raw);
+
     // Get detail data
-    $stmt = $pdo->prepare('
+    $stmt = $pdo->prepare("
         SELECT
             rd.tahun, rd.bulan, rd.bulan_num, rd.golongan, rd.nama_golongan,
             rd.rp, rd.m3, rd.rp_per_m3,
@@ -286,7 +314,7 @@ function db_get_analysis_full(int $upload_id): ?array {
         JOIN analysis_results ar ON ar.raw_data_id = rd.id
         WHERE ar.upload_id = ?
         ORDER BY rd.tahun, rd.bulan_num, rd.golongan
-    ');
+    ");
     $stmt->execute([$upload_id]);
     $rows = $stmt->fetchAll();
 
@@ -328,12 +356,15 @@ function db_get_analysis_full(int $upload_id): ?array {
         ],
         'summary_golongan' => array_map(function($g) {
             return [
-                'golongan' => $g['golongan'],
-                'total' => (int)$g['total'],
-                'anomali' => (int)$g['anomali'],
-                'normal' => (int)$g['normal']
+                'golongan'      => $g['golongan'],
+                'nama_golongan' => $g['nama_golongan'] ?? $g['golongan'],
+                'total'         => (int)$g['total'],
+                'anomali'       => (int)$g['anomali'],
+                'normal'        => (int)$g['normal'],
+                'pct'           => (float)($g['pct'] ?? 0),
             ];
         }, $summary_golongan),
+        'summary_tahun'   => $summary_tahun,
         'data' => $data
     ];
 }

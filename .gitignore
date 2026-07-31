@@ -1,0 +1,14 @@
+# Environment
+.env
+
+# Data uploads & hasil analisis
+data/*.xlsx
+json/
+
+# Logs
+logs/
+*.log
+
+# Python
+__pycache__/
+*.pyc

@@ -106,6 +106,32 @@ const API = {
   }
 };
 
+// ===== EXPORT (CSV fallback untuk dashboard2) =====
+const Export = {
+  toExcel(rows, filename = 'export') {
+    if (!rows || !rows.length) { showAlert('Tidak ada data untuk diekspor.', 'warning'); return; }
+    const headers = Object.keys(rows[0]);
+    const escape = (v) => {
+      const s = v == null ? '' : String(v);
+      if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+      return s;
+    };
+    const csv = [
+      headers.map(h => escape(h)).join(','),
+      ...rows.map(r => headers.map(h => escape(r[h])).join(','))
+    ].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename + '.csv';
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+  }
+};
+
 // ===== FORMAT =====
 const Fmt = {
   rp(val) {

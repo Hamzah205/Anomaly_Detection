@@ -4,15 +4,10 @@
 <!DOCTYPE html>
 <html lang="id" data-theme="light">
 <head>
-<script>document.documentElement.setAttribute("data-theme",localStorage.getItem("pdam_theme")||"light");</script>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<?php include __DIR__ . '/includes/head_common.php'; ?>
   <title>Riwayat Analisis — PDAM Anomaly Detection</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
-    body{font-family:'DM Sans',sans-serif}
     .sum4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
     @media(max-width:900px){.sum4{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:480px){.sum4{grid-template-columns:1fr}}
@@ -32,28 +27,6 @@
     .timeline-item:last-child{border-bottom:none}
     .replay-btn{background:rgba(21,101,192,.08);color:var(--primary);border:1px solid rgba(21,101,192,.2);border-radius:var(--radius-sm);padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;display:inline-flex;align-items:center;gap:5px}
     .replay-btn:hover{background:var(--primary);color:#fff}
-  
-  /* v2.0 Design Enhancements */
-  .card-pdam h2, .card-pdam h3 { font-family: 'Outfit', sans-serif; }
-  .stat-num { font-family: 'Outfit', sans-serif; font-weight: 800; letter-spacing: -0.5px; }
-  .badge-sev {
-    display: inline-flex; align-items: center; gap: 4px;
-    padding: 3px 9px; border-radius: 99px; font-size: 11px; font-weight: 700;
-    border: 1px solid transparent; font-family: 'DM Sans', sans-serif;
-  }
-  .badge-high   { background: rgba(225,29,72,0.1);  color: #B91C1C; border-color: rgba(225,29,72,0.2);  }
-  .badge-medium { background: rgba(217,119,6,0.1);  color: #92400E; border-color: rgba(217,119,6,0.2);  }
-  .badge-low    { background: rgba(5,150,105,0.1);  color: #065F46; border-color: rgba(5,150,105,0.2);  }
-  .badge-normal { background: rgba(8,145,178,0.1);  color: #0C4A6E; border-color: rgba(8,145,178,0.2);  }
-  [data-theme="dark"] .badge-high   { color: #FCA5A5; }
-  [data-theme="dark"] .badge-medium { color: #FDBA74; }
-  [data-theme="dark"] .badge-low    { color: #6EE7B7; }
-  [data-theme="dark"] .badge-normal { color: #7DD3FC; }
-
-  .grid-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 20px; }
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 20px; }
-  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-bottom: 20px; }
-  @media (max-width: 768px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -282,44 +255,75 @@ const HISTORY = <?= json_encode($history, JSON_UNESCAPED_UNICODE) ?>;
 let filtered = [...HISTORY];
 const pag = new Paginator(20);
 
+// ===== WARNA CHART (hex, bukan CSS var agar Chart.js bisa baca) =====
+const CHART_COLORS = ['#E53935','#1565C0','#43A047','#FB8C00'];
+
 // ===== CHARTS =====
 function renderCharts() {
   if (!HISTORY.length) return;
 
   // Trend chart
   const last20 = [...HISTORY].reverse().slice(-20);
-  const cT = new Chart(document.getElementById('cTrend'), {
+  new Chart(document.getElementById('cTrend'), {
     type: 'line',
     data: {
       labels: last20.map((_,i) => `#${i+1}`),
       datasets: [{
         label: '% Anomali',
         data: last20.map(h => parseFloat(h.persentase)),
-        borderColor: '#E53935', backgroundColor: 'rgba(229,57,53,.1)',
+        borderColor: '#E53935',
+        backgroundColor: 'rgba(229,57,53,.1)',
         fill: true, tension: .4, pointRadius: 4
       }]
     },
-    options: { responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{position:'top',labels:{font:{size:11},boxWidth:12}} },
-      scales:{ x:{grid:{display:false},ticks:{font:{size:10}}},
-               y:{grid:{color:'rgba(128,128,128,.08)'},ticks:{font:{size:10}},min:0} } }
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position:'top', labels: { font:{size:11}, boxWidth:12 } } },
+      scales: {
+        x: { grid:{display:false}, ticks:{font:{size:10}} },
+        y: { grid:{color:'rgba(128,128,128,.08)'}, ticks:{font:{size:10}}, min:0 }
+      }
+    }
   });
 
-  // Mode distribution
+  // Mode distribution donut — FIX: pakai hex color bukan CSS var
   const modeCount = {};
   HISTORY.forEach(h => { modeCount[h.filter_mode] = (modeCount[h.filter_mode]||0)+1; });
-  const modeLabels = { near_tahun_per_golongan:'Near Tahun/Gol', near_tahun_near_golongan:'Near Tahun vs Gol',
-    multi_tahun_per_golongan:'Multi Tahun/Gol', multi_tahun_semua_golongan:'Multi Tahun Semua' };
+  const modeLabels = {
+    near_tahun_per_golongan:   'Near Tahun/Gol',
+    near_tahun_near_golongan:  'Near Tahun vs Gol',
+    multi_tahun_per_golongan:  'Multi Tahun/Gol',
+    multi_tahun_semua_golongan:'Multi Tahun Semua'
+  };
   const mKeys = Object.keys(modeCount);
+
   new Chart(document.getElementById('cMode'), {
     type: 'doughnut',
     data: {
-      labels: mKeys.map(k => modeLabels[k]||k),
-      datasets:[{ data:mKeys.map(k=>modeCount[k]),
-        backgroundColor:['var(--primary)','#FB8C00','#43A047','#E53935'],borderWidth:0,hoverOffset:6 }]
+      labels: mKeys.map(k => modeLabels[k] || k),
+      datasets: [{
+        data: mKeys.map(k => modeCount[k]),
+        // FIX: gunakan hex eksplisit, bukan CSS var() — Chart.js tidak bisa resolve CSS var
+        backgroundColor: CHART_COLORS.slice(0, mKeys.length),
+        borderWidth: 2,
+        borderColor: '#ffffff',
+        hoverOffset: 6
+      }]
     },
-    options:{ responsive:true,maintainAspectRatio:false,cutout:'62%',
-      plugins:{legend:{position:'right',labels:{font:{size:10},boxWidth:10}}} }
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '62%',
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: { font:{size:10}, boxWidth:10, padding:8 }
+        },
+        tooltip: {
+          callbacks: {
+            label: c => ` ${c.label}: ${c.parsed} run`
+          }
+        }
+      }
+    }
   });
 }
 
@@ -328,16 +332,18 @@ function filterTable() {
   const mode = document.getElementById('fMode').value;
   const sort = document.getElementById('fSort').value;
   filtered = HISTORY.filter(h => !mode || h.filter_mode === mode);
-  if (sort==='oldest')   filtered.sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+  if (sort==='oldest')        filtered.sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
   else if (sort==='pct_desc') filtered.sort((a,b)=>b.persentase-a.persentase);
   else if (sort==='pct_asc')  filtered.sort((a,b)=>a.persentase-b.persentase);
-  else filtered.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  else                        filtered.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
   pag.current=1; renderTable();
 }
 
 const modeLabels = {
-  near_tahun_per_golongan:'Near Tahun/Gol', near_tahun_near_golongan:'Near Tahun vs Gol',
-  multi_tahun_per_golongan:'Multi Tahun/Gol', multi_tahun_semua_golongan:'Multi Tahun Semua'
+  near_tahun_per_golongan:   'Near Tahun/Gol',
+  near_tahun_near_golongan:  'Near Tahun vs Gol',
+  multi_tahun_per_golongan:  'Multi Tahun/Gol',
+  multi_tahun_semua_golongan:'Multi Tahun Semua'
 };
 
 function renderTable() {
@@ -361,7 +367,7 @@ function renderTable() {
       <td><span class="cont-badge">${h.contamination==='auto'?'Auto':(parseFloat(h.contamination)*100)+'%'}</span></td>
       <td style="font-size:12px">${tMin===tMax?(tMin):tMin+' – '+tMax}</td>
       <td style="font-size:12px">${parseInt(h.jumlah_data).toLocaleString('id-ID')}</td>
-      <td><span style="font-weight:700;color:var(--anomaly-color)">${parseInt(h.jumlah_anomali).toLocaleString('id-ID')}</span></td>
+      <td><span style="font-weight:700;color:#E53935">${parseInt(h.jumlah_anomali).toLocaleString('id-ID')}</span></td>
       <td><span class="${pctCls}">${pct.toFixed(1)}%</span></td>
       <td>
         <button class="replay-btn"
@@ -378,39 +384,33 @@ function renderTable() {
 
 // ===== REPLAY =====
 function replayAnalysis(mode, cont, tMin, tMax, historyId) {
-  // Jika ada historyId, load data lengkap dari database
   if (historyId) {
     fetch('api.php?action=load_history', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: 'history_id=' + encodeURIComponent(historyId)
     })
-    .then(r => r.json())
-    .then(d => {
+    .then(r => r.text())
+    .then(text => {
+      let d;
+      try { d = JSON.parse(text); }
+      catch(e) { alert('Server error: ' + text.substring(0, 200)); return; }
       if (d.status === 'success' && d.data) {
-        // Simpan data lengkap ke sessionStorage untuk ditampilkan langsung di dashboard
         sessionStorage.setItem('pdam_history_data', JSON.stringify(d.data));
         sessionStorage.setItem('pdam_history_id', historyId);
         sessionStorage.setItem('pdam_upload_id', d.upload_id);
-        
-        // Simpan juga parameter untuk replay jika mau re-analysis
-        localStorage.setItem('pdam_replay', JSON.stringify({ 
-          mode, contamination:cont, tahun_min:tMin||'', tahun_max:tMax||'' 
+        localStorage.setItem('pdam_replay', JSON.stringify({
+          mode, contamination:cont, tahun_min:tMin||'', tahun_max:tMax||''
         }));
-        
-        // Redirect ke dashboard4 (detail anomali) dengan data sudah siap
         location.href = 'dashboard4.php?from_history=1&history_id=' + historyId;
       } else {
         alert('Gagal memuat data: ' + (d.message || 'Unknown error'));
       }
     })
-    .catch(e => {
-      alert('Error: ' + e.message);
-    });
+    .catch(e => alert('Error: ' + e.message));
   } else {
-    // Fallback: hanya set parameter
-    localStorage.setItem('pdam_replay', JSON.stringify({ 
-      mode, contamination:cont, tahun_min:tMin||'', tahun_max:tMax||'' 
+    localStorage.setItem('pdam_replay', JSON.stringify({
+      mode, contamination:cont, tahun_min:tMin||'', tahun_max:tMax||''
     }));
     location.href = 'dashboard2.php?replay=1';
   }

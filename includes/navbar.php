@@ -39,6 +39,14 @@ if ($is_logged_in) {
   </a>
   <div class="navbar-spacer"></div>
   <ul class="navbar-nav-items">
+    <li>
+      <a href="index.php" class="<?= $current === 'index.php' ? 'active' : '' ?>">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Beranda
+      </a>
+    </li>
     <?php foreach ($pages as $file => $info): ?>
     <li>
       <a href="<?= $file ?>" class="<?= $current === $file ? 'active' : '' ?>">
@@ -135,6 +143,12 @@ if ($is_logged_in) {
   </a>
   <?php endif ?>
 
+  <a href="index.php" class="<?= $current === 'index.php' ? 'active' : '' ?>">
+    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+    Beranda
+  </a>
   <?php foreach ($pages as $file => $info): ?>
   <a href="<?= $file ?>" class="<?= $current === $file ? 'active' : '' ?>">
     <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -162,4 +176,3 @@ if ($is_logged_in) {
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
-<script src="js/app.js" defer></script>
