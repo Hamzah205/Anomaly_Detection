@@ -214,10 +214,12 @@ function db_link_history(int $upload_id, int $history_id): void {
 function db_get_upload_stats(int $upload_id): array {
     $pdo = db_connect();
     if (!$pdo) return [];
+    $is_pgsql = defined('DB_DRIVER') && DB_DRIVER === 'pgsql';
+    $anom_expr = $is_pgsql ? 'SUM(is_anomaly::int)' : 'SUM(is_anomaly)';
     $stmt = $pdo->prepare("
         SELECT
             COUNT(*) AS total,
-            SUM(is_anomaly::int) AS anomali,
+            {$anom_expr} AS anomali,
             SUM(CASE WHEN anomaly_level = 'high'   THEN 1 ELSE 0 END) AS high_cnt,
             SUM(CASE WHEN anomaly_level = 'medium' THEN 1 ELSE 0 END) AS medium_cnt,
             SUM(CASE WHEN anomaly_level = 'low'    THEN 1 ELSE 0 END) AS low_cnt
@@ -261,14 +263,16 @@ function db_get_analysis_full(int $upload_id): ?array {
     }
 
     // Get summary per golongan
+    $is_pgsql = defined('DB_DRIVER') && DB_DRIVER === 'pgsql';
+    $anom_expr = $is_pgsql ? 'SUM(ar.is_anomaly::int)' : 'SUM(ar.is_anomaly)';
     $stmt = $pdo->prepare("
         SELECT 
             rd.golongan,
             MAX(rd.nama_golongan) as nama_golongan,
             COUNT(*) as total,
-            SUM(ar.is_anomaly::int) as anomali,
-            COUNT(*) - SUM(ar.is_anomaly::int) as normal,
-            ROUND(SUM(ar.is_anomaly::int) * 100.0 / COUNT(*), 2) as pct
+            {$anom_expr} as anomali,
+            COUNT(*) - {$anom_expr} as normal,
+            ROUND({$anom_expr} * 100.0 / COUNT(*), 2) as pct
         FROM raw_data rd
         JOIN analysis_results ar ON ar.raw_data_id = rd.id
         WHERE ar.upload_id = ?
@@ -283,9 +287,9 @@ function db_get_analysis_full(int $upload_id): ?array {
         SELECT 
             rd.tahun,
             COUNT(*) as total,
-            SUM(ar.is_anomaly::int) as anomali,
-            COUNT(*) - SUM(ar.is_anomaly::int) as normal,
-            ROUND(SUM(ar.is_anomaly::int) * 100.0 / COUNT(*), 2) as pct
+            {$anom_expr} as anomali,
+            COUNT(*) - {$anom_expr} as normal,
+            ROUND({$anom_expr} * 100.0 / COUNT(*), 2) as pct
         FROM raw_data rd
         JOIN analysis_results ar ON ar.raw_data_id = rd.id
         WHERE ar.upload_id = ?

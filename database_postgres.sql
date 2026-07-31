@@ -107,7 +107,7 @@ CREATE TABLE analysis_history (
   user_id         INT               NOT NULL,
   upload_id       INT               DEFAULT NULL,
   filter_mode     VARCHAR(60)       NOT NULL DEFAULT 'near_tahun_per_golongan',
-  contamination   DECIMAL(4,2)      NOT NULL DEFAULT 0.05,
+  contamination   VARCHAR(10)       NOT NULL DEFAULT '0.05',
   n_estimators    INT               DEFAULT 100,
   tahun_min       SMALLINT          DEFAULT NULL,
   tahun_max       SMALLINT          DEFAULT NULL,

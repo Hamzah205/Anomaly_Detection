@@ -103,7 +103,7 @@ CREATE TABLE IF NOT EXISTS analysis_history (
   user_id         INT UNSIGNED      NOT NULL,
   upload_id       INT UNSIGNED      DEFAULT NULL,
   filter_mode     VARCHAR(60)       NOT NULL DEFAULT 'near_tahun_per_golongan',
-  contamination   DECIMAL(4,2)      NOT NULL DEFAULT 0.05,
+  contamination   VARCHAR(10)       NOT NULL DEFAULT '0.05',
   n_estimators    INT UNSIGNED      DEFAULT 100,
   tahun_min       SMALLINT          DEFAULT NULL,
   tahun_max       SMALLINT          DEFAULT NULL,
