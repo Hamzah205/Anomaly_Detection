@@ -1,14 +1,29 @@
 # Environment
 .env
 
-# Data uploads & hasil analisis
-data/*.xlsx
-json/
+# Local config (contains DB credentials)
+config/config.php
 
-# Logs
-logs/
+# Storage (Laravel-like structure)
+storage/data/*.xlsx
+storage/app/*.json
+storage/logs/
 *.log
 
 # Python
 __pycache__/
 *.pyc
+scripts/python/__pycache__/
+
+# Vendor (if using Composer)
+vendor/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

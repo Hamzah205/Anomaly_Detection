@@ -1,0 +1,32 @@
+# PDAM Anomaly Detection - Root .htaccess
+# Redirect all requests to public/ folder and block sensitive files
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # If request is for a real file/folder in public, serve it directly
+    RewriteCond %{REQUEST_URI} ^/public/(css|js|assets)/ [OR]
+    RewriteCond %{REQUEST_URI} ^/public/
+    RewriteRule ^ - [L]
+
+    # Block direct access to sensitive directories (redirect to 404)
+    RewriteCond %{REQUEST_URI} /(app|config|bootstrap|scripts|storage|database|docs|resources|routes)/
+    RewriteRule ^ - [R=404,L]
+
+    # Redirect everything else to public/
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+# Protect .env and other dotfiles
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+# Block access to sensitive file types
+<FilesMatch "\.(md|sql|bat|json|log|py|pyc)$">
+    Require all denied
+</FilesMatch>
+
+# Disable directory listing
+Options -Indexes
