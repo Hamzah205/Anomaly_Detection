@@ -87,7 +87,7 @@ Anomaly_Detection/
 │
 ├── docs/                    ← Dokumentasi (ALGORITMA.md, ALUR_SISTEM.md, TA.md, LARAGON_MIGRASI.md)
 ├── bootstrap/               ← (lihat bootstrap/bootstrap.php)           
-└── README.md                ← Aturan keamanan sekuriti untuk agent / kolaborator
+└── README.md                
 ```
 
 ---
