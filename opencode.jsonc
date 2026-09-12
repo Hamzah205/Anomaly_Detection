@@ -1,0 +1,153 @@
+{
+  // ============================================================
+  //  opencode — PDAM RESEARCH PROJECT SECURITY TEMPLATE (PROTOTYPE)
+  // ============================================================
+  //  Build from scratch. NO real secrets / keys / credentials.
+  //
+  //  HOW TO USE:
+  //    1. Review every line.
+  //    2. Merge the "permission" block into THIS project's config:
+  //       <repo>/.opencode/opencode.json   (or project opencode.json)
+  //    3. Restart opencode.
+  //
+  //  INTENT (project-scoped, overrides/extends global config):
+  //    - Real PDAM datasets            -> DENY (never ask)
+  //    - Generated private analysis    -> DENY (never ask)
+  //    - Python research source        -> ASK (permission prompt)
+  //    - Normal source code            -> ALLOW
+  //
+  //  Note: opencode permission objects are matched by the LAST
+  //  matching rule, so broad rules come FIRST and deny rules LAST.
+  // ============================================================
+
+  "$schema": "https://opencode.ai/config.json",
+
+  "permission": {
+    "read": {
+      "*": "allow",
+      // ---- Real PDAM research data: DENY ----
+      "storage/data/**": "deny",
+      "storage/app/**": "deny",
+      "uploads/**": "deny",
+      "data/**": "deny",
+      "private/**": "deny",
+      // ---- Protected application config: DENY ----
+      "config/config.php": "deny",
+      // ---- Credential & opencode config files: DENY ----
+      "**/.env": "deny",
+      "**/.env.*": "deny",
+      "opencode.json": "deny",
+      "opencode.jsonc": "deny",
+      // ---- Sensitive research data types (any location) ----
+      "**/*.xlsx": "deny",
+      "**/*.xls": "deny",
+      "**/*.csv": "deny",
+      "**/*.db": "deny",
+      "**/*.sqlite": "deny",
+      "**/*.sqlite3": "deny",
+      // ---- Python research source: ASK (not auto-read) ----
+      "**/*.py": "ask"
+    },
+
+    "edit": {
+      "*": "allow",
+      "storage/data/**": "deny",
+      "storage/app/**": "deny",
+      "uploads/**": "deny",
+      "data/**": "deny",
+      "private/**": "deny",
+      // ---- Protected application config: DENY ----
+      "config/config.php": "deny",
+      // ---- Credential & opencode config files: DENY ----
+      "**/.env": "deny",
+      "**/.env.*": "deny",
+      "opencode.json": "deny",
+      "opencode.jsonc": "deny",
+      "**/*.xlsx": "deny",
+      "**/*.xls": "deny",
+      "**/*.csv": "deny",
+      "**/*.db": "deny",
+      "**/*.sqlite": "deny",
+      "**/*.sqlite3": "deny",
+      // ---- Python research source: ASK (not auto-edited) ----
+      "**/*.py": "ask"
+    },
+
+    "grep": {
+      "*": "allow",
+      "storage/data/**": "deny",
+      "storage/app/**": "deny",
+      "uploads/**": "deny",
+      "data/**": "deny",
+      "private/**": "deny",
+      // ---- Protected application config: DENY ----
+      "config/config.php": "deny",
+      // ---- Credential & opencode config files: DENY ----
+      "**/.env": "deny",
+      "**/.env.*": "deny",
+      "opencode.json": "deny",
+      "opencode.jsonc": "deny",
+      "**/*.xlsx": "deny",
+      "**/*.xls": "deny",
+      "**/*.csv": "deny",
+      "**/*.db": "deny",
+      "**/*.sqlite": "deny",
+      "**/*.sqlite3": "deny",
+      "**/*.py": "ask"
+    },
+
+    "glob": {
+      "*": "allow",
+      "storage/data/**": "deny",
+      "storage/app/**": "deny",
+      "uploads/**": "deny",
+      "data/**": "deny",
+      "private/**": "deny",
+      // ---- Protected application config: DENY ----
+      "config/config.php": "deny",
+      // ---- Credential & opencode config files: DENY ----
+      "**/.env": "deny",
+      "**/.env.*": "deny",
+      "opencode.json": "deny",
+      "opencode.jsonc": "deny",
+      "**/*.xlsx": "deny",
+      "**/*.xls": "deny",
+      "**/*.csv": "deny",
+      "**/*.db": "deny",
+      "**/*.sqlite": "deny",
+      "**/*.sqlite3": "deny"
+    },
+
+    "list": {
+      "*": "allow",
+      "storage/data/**": "deny",
+      "storage/app/**": "deny",
+      "uploads/**": "deny",
+      "data/**": "deny",
+      "private/**": "deny"
+    },
+
+    // Best-effort terminal protection: blocks obvious shell reads of
+    // research data. Cannot be exhaustive — primary enforcement is the
+    // read/grep/glob denies above plus AGENTS.md.
+    "bash": {
+      "*": "allow",
+      "cat storage/data/*": "deny",
+      "cat storage/app/*": "deny",
+      "Get-Content storage/data/*": "deny",
+      "Get-Content storage/app/*": "deny",
+      "type storage/data/*": "deny",
+      "type storage/app/*": "deny",
+      "cat data/*": "deny",
+      "cat private/*": "deny",
+      "cat uploads/*": "deny"
+    },
+
+    // Flat-action tools:
+    "todowrite": "allow",
+    "question": "allow",
+    "webfetch": "allow",
+    "websearch": "allow",
+    "doom_loop": "ask"
+  }
+}

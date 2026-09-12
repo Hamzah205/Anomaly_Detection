@@ -57,25 +57,25 @@ require_once __DIR__ . "/router.php";
 
     /* ===== MODERN COLOR SYSTEM + DARK MODE ===== */
     :root {
-      /* Primary Gradient - Modern Purple to Blue */
-      --primary-start: #6366f1;
-      --primary-end: #8b5cf6;
-      --primary-dark: #4f46e5;
-      --accent: #f59e0b;
+      /* Primary Gradient - Fresh Water Theme (Sky Blue to Cyan) */
+      --primary-start: #0ea5e9;
+      --primary-end: #06b6d4;
+      --primary-dark: #0284c7;
+      --accent: #0d9488;
       
       /* Light Mode */
-      --bg: #FAFBFC;
+      --bg: #F0F9FF;
       --bg-card: #ffffff;
       --text-primary: #0f172a;
       --text-secondary: #64748b;
       --text-1: #0f172a;
       --text-2: #64748b;
-      --border: #e2e8f0;
-      --shadow: 0 4px 20px rgba(0,0,0,0.08);
-      --shadow-lg: 0 10px 40px rgba(0,0,0,0.12);
+      --border: #e0f2fe;
+      --shadow: 0 4px 20px rgba(2,132,199,0.08);
+      --shadow-lg: 0 10px 40px rgba(2,132,199,0.12);
       
       /* Gradient Backgrounds */
-      --gradient-hero: linear-gradient(135deg, #f5f3ff 0%, #e0e7ff 50%, #dbeafe 100%);
+      --gradient-hero: linear-gradient(135deg, #ecfeff 0%, #e0f2fe 50%, #dbeafe 100%);
       --gradient-primary: linear-gradient(135deg, var(--primary-start), var(--primary-end));
       --gradient-text: linear-gradient(135deg, var(--primary-start), var(--primary-end));
     }
@@ -87,10 +87,10 @@ require_once __DIR__ . "/router.php";
       --text-secondary: #94a3b8;
       --text-1: #f1f5f9;
       --text-2: #94a3b8;
-      --border: #334155;
+      --border: #1e3a5f;
       --shadow: 0 4px 20px rgba(0,0,0,0.3);
       --shadow-lg: 0 10px 40px rgba(0,0,0,0.4);
-      --gradient-hero: linear-gradient(135deg, #1e1b4b 0%, #1e293b 50%, #0f172a 100%);
+      --gradient-hero: linear-gradient(135deg, #082f49 0%, #164e63 50%, #0f172a 100%);
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -253,15 +253,15 @@ require_once __DIR__ . "/router.php";
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
       background-image: 
-        radial-gradient(circle at 20% 30%, rgba(99,102,241,0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 70%, rgba(139,92,246,0.08) 0%, transparent 50%);
+        radial-gradient(circle at 20% 30%, rgba(14,165,233,0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(6,182,212,0.08) 0%, transparent 50%);
       pointer-events: none;
     }
 
     [data-theme="dark"] .hero-bg-pattern {
       background-image: 
-        radial-gradient(circle at 20% 30%, rgba(99,102,241,0.15) 0%, transparent 50%),
-        radial-gradient(circle at 80% 70%, rgba(139,92,246,0.12) 0%, transparent 50%);
+        radial-gradient(circle at 20% 30%, rgba(14,165,233,0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(6,182,212,0.12) 0%, transparent 50%);
     }
 
     .floating-shapes {
@@ -290,6 +290,80 @@ require_once __DIR__ . "/router.php";
       animation: float 8s ease-in-out infinite reverse;
     }
 
+    /* ===== ANIMATED WATER BACKGROUND ===== */
+    .hero {
+      background: linear-gradient(120deg, #e0f2fe 0%, #bae6fd 30%, #7dd3fc 60%, #38bdf8 100%);
+      background-size: 300% 300%;
+      animation: heroFlow 18s ease infinite;
+    }
+    [data-theme="dark"] .hero {
+      background: linear-gradient(120deg, #082f49 0%, #164e63 40%, #0e7490 70%, #155e75 100%);
+      background-size: 300% 300%;
+      animation: heroFlow 18s ease infinite;
+    }
+    @keyframes heroFlow {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Bubbles */
+    .bubble {
+      position: absolute;
+      bottom: -60px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.55), rgba(255,255,255,0.05));
+      border: 1px solid rgba(255,255,255,0.4);
+      animation: bubbleRise linear infinite;
+      pointer-events: none;
+    }
+    .bubble-1 { left: 8%;  width: 34px; height: 34px; animation-duration: 9s;  animation-delay: 0s; }
+    .bubble-2 { left: 22%; width: 18px; height: 18px; animation-duration: 12s; animation-delay: 2s; }
+    .bubble-3 { left: 36%; width: 46px; height: 46px; animation-duration: 14s; animation-delay: 5s; }
+    .bubble-4 { left: 52%; width: 14px; height: 14px; animation-duration: 8s;  animation-delay: 1s; }
+    .bubble-5 { left: 66%; width: 26px; height: 26px; animation-duration: 11s; animation-delay: 4s; }
+    .bubble-6 { left: 78%; width: 40px; height: 40px; animation-duration: 15s; animation-delay: 3s; }
+    .bubble-7 { left: 90%; width: 20px; height: 20px; animation-duration: 10s; animation-delay: 6s; }
+    @keyframes bubbleRise {
+      0%   { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
+      10%  { opacity: 0.8; }
+      50%  { transform: translateY(-45vh) translateX(18px) scale(1.1); }
+      100% { transform: translateY(-100vh) translateX(-14px) scale(1.25); opacity: 0; }
+    }
+
+    /* Wave divider */
+    .hero-wave {
+      position: absolute;
+      bottom: -1px; left: 0; right: 0;
+      line-height: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .hero-wave svg {
+      display: block;
+      width: 100%;
+      height: 90px;
+    }
+
+    /* Animated badge shimmer */
+    .hero-badge {
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-badge::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -120%;
+      width: 60%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent);
+      animation: shimmer 3s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+      0%   { left: -120%; }
+      60%  { left: 160%; }
+      100% { left: 160%; }
+    }
+
     .hero-container {
       max-width: 1200px;
       margin: 0 auto;
@@ -309,7 +383,7 @@ require_once __DIR__ . "/router.php";
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: rgba(99,102,241,0.1);
+      background: rgba(14,165,233,0.1);
       color: var(--primary-start);
       padding: 8px 16px;
       border-radius: 50px;
@@ -471,10 +545,10 @@ require_once __DIR__ . "/router.php";
     }
 
     .mockup-card {
-      background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.05));
+      background: linear-gradient(135deg, rgba(14,165,233,0.08), rgba(6,182,212,0.05));
       border-radius: 12px;
       padding: 16px;
-      border: 1px solid rgba(99,102,241,0.1);
+      border: 1px solid rgba(14,165,233,0.1);
     }
 
     [data-theme="dark"] .mockup-card {
@@ -503,7 +577,7 @@ require_once __DIR__ . "/router.php";
 
     .mockup-bar {
       height: 8px;
-      background: rgba(99,102,241,0.1);
+      background: rgba(14,165,233,0.1);
       border-radius: 4px;
       overflow: hidden;
     }
@@ -579,7 +653,7 @@ require_once __DIR__ . "/router.php";
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: rgba(99,102,241,0.1);
+      background: rgba(14,165,233,0.1);
       color: var(--primary-start);
       padding: 8px 20px;
       border-radius: 50px;
@@ -680,12 +754,12 @@ require_once __DIR__ . "/router.php";
     /* ===== HOW IT WORKS ===== */
     .how-it-works {
       padding: 100px 24px;
-      background: linear-gradient(180deg, var(--bg) 0%, rgba(99,102,241,0.08) 100%);
+      background: linear-gradient(180deg, var(--bg) 0%, rgba(14,165,233,0.08) 100%);
       transition: background 0.3s;
     }
 
     [data-theme="dark"] .how-it-works {
-      background: linear-gradient(180deg, var(--bg) 0%, rgba(99,102,241,0.05) 100%);
+      background: linear-gradient(180deg, var(--bg) 0%, rgba(14,165,233,0.05) 100%);
     }
 
     .steps-container {
@@ -780,7 +854,7 @@ require_once __DIR__ . "/router.php";
       font-size: 48px;
       font-weight: 800;
       margin-bottom: 8px;
-      background: linear-gradient(135deg, #ffffff, #c7d2fe);
+      background: linear-gradient(135deg, #ffffff, #7dd3fc);
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -913,13 +987,13 @@ require_once __DIR__ . "/router.php";
     }
 
     .footer-credit a {
-      color: #a5b4fc;
+      color: #7dd3fc;
       text-decoration: none;
       font-weight: 600;
     }
 
     .footer-credit a:hover {
-      color: #c7d2fe;
+      color: #bae6fd;
     }
 
     /* ===== ANIMATIONS KEYFRAMES ===== */
@@ -1169,6 +1243,19 @@ require_once __DIR__ . "/router.php";
     <div class="floating-shapes">
       <div class="shape shape-1"></div>
       <div class="shape shape-2"></div>
+      <div class="bubble bubble-1"></div>
+      <div class="bubble bubble-2"></div>
+      <div class="bubble bubble-3"></div>
+      <div class="bubble bubble-4"></div>
+      <div class="bubble bubble-5"></div>
+      <div class="bubble bubble-6"></div>
+      <div class="bubble bubble-7"></div>
+    </div>
+
+    <div class="hero-wave">
+      <svg viewBox="0 0 1440 90" preserveAspectRatio="none">
+        <path fill="var(--bg-card)" d="M0,32 C240,80 480,0 720,16 C960,32 1200,72 1440,24 L1440,90 L0,90 Z"></path>
+      </svg>
     </div>
 
     <div class="hero-container">

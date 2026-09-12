@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "Read", "Edit", "Glob", "Grep",
+      "WebFetch", "WebSearch", "TodoWrite", "Task"
+    ],
+    "ask": [
+      "Read(./**/*.py)",
+      "Edit(./**/*.py)"
+    ],
+    "deny": [
+      "Read(./storage/data/**)",
+      "Read(./storage/app/**)",
+      "Read(./uploads/**)",
+      "Read(./data/**)",
+      "Read(./private/**)",
+      "Edit(./storage/data/**)",
+      "Edit(./storage/app/**)",
+      "Edit(./uploads/**)",
+      "Edit(./data/**)",
+      "Edit(./private/**)",
+      "Read(./config/config.php)",
+      "Edit(./config/config.php)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./**/*.xlsx)",
+      "Read(./**/*.xls)",
+      "Read(./**/*.csv)",
+      "Read(./**/*.db)",
+      "Read(./**/*.sqlite)",
+      "Read(./**/*.sqlite3)",
+      "Edit(./**/*.xlsx)",
+      "Edit(./**/*.xls)",
+      "Edit(./**/*.csv)",
+      "Edit(./**/*.db)",
+      "Edit(./**/*.sqlite)",
+      "Edit(./**/*.sqlite3)"
+    ],
+    "defaultMode": "default",
+    "disableBypassPermissionsMode": "disable"
+  }
+}

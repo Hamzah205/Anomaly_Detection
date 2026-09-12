@@ -1,0 +1,56 @@
+{
+  // ============================================================
+  // CONTOH — opencode.example.jsonc
+  // Salin bagian yang kamu butuhkan ke opencode.jsonc.
+  // Jangan commit apiKey asli. Ganti nilai "sk-xxxx" dengan
+  // placeholder {env:NAMA_VARIABEL} seperti di bawah.
+  // ============================================================
+  "$schema": "https://opencode.ai/config.json",
+
+  // Model default (provider/agent sudah pakai env, contoh pakai Anthropic)
+  "model": "anthropic/claude-sonnet-4-6",
+
+  "provider": {
+    // --- Provider standar: apiKey dari .env ---
+    "anthropic": {
+      "options": {
+        "apiKey": "{env:ANTHROPIC_API_KEY}"
+      }
+    },
+    "openai": {
+      "options": {
+        "apiKey": "{env:OPENAI_API_KEY}"
+      }
+    },
+    "google": {
+      "options": {
+        "apiKey": "{env:GEMINI_API_KEY}"
+      }
+    },
+
+    // --- Contoh custom provider (OpenAI-compatible) ---
+    // "deepseek": {
+    //   "npm": "@ai-sdk/openai-compatible",
+    //   "name": "DeepSeek",
+    //   "options": {
+    //     "baseURL": "https://api.deepseek.com/v1",
+    //     "apiKey": "{env:DEEPSEEK_API_KEY}"
+    //   },
+    //   "models": {
+    //     "deepseek-chat": { "name": "DeepSeek Chat" }
+    //   }
+    // }
+  },
+
+  "mcp": {
+    // --- Contoh MCP yang butuh token (juga pakai {env:...}) ---
+    // "github": {
+    //   "type": "remote",
+    //   "url": "https://api.githubcopilot.com/mcp/",
+    //   "enabled": true,
+    //   "headers": {
+    //     "Authorization": "Bearer {env:GITHUB_TOKEN}"
+    //   }
+    // }
+  }
+}
